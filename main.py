@@ -48,8 +48,8 @@ def tweet(media) -> requests.Response:
 
 
 def main():
-    medias = get_random_medias()
-    tweet(medias)
+    media = get_random_media()
+    tweet(media)
 
 
 if __name__ == '__main__':
