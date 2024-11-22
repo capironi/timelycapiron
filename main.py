@@ -6,10 +6,16 @@ import tweepy
 
 # Pick a random image/video from the 'assets' folder
 def get_random_media():
-    path = 'assets' # 
-    objects = os.listdir(path)
-
-    media = random.choice(objects)
+    path = 'assets'
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"The directory '{path}' does not exist.")
+    
+    # Filter for media files only
+    media_files = [f for f in os.listdir(path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.mp4', '.gif'))]
+    if not media_files:
+        raise FileNotFoundError(f"No media files found in the directory '{path}'.")
+    
+    media = random.choice(media_files)
     return os.path.join(path, media)
 
 
@@ -30,26 +36,41 @@ def auth_v2(consumer_key, consumer_secret, access_token, access_token_secret):
 
 
 # Tweet picked image/video
-def tweet(media) -> requests.Response:
-    # In the next for 4 lines we are getting the keys from Step 4
-    consumer_key = os.environ['CONSUMER_KEY']
-    consumer_secret = os.environ['CONSUMER_SECRET']
-    access_token = os.environ['ACCESS_TOKEN']
-    access_token_secret = os.environ['ACCESS_TOKEN_SECRET']
+def tweet(media) -> tweepy.Response:
+    try:
+        # Get Twitter API credentials from environment variables
+        consumer_key = os.environ['CONSUMER_KEY']
+        consumer_secret = os.environ['CONSUMER_SECRET']
+        access_token = os.environ['ACCESS_TOKEN']
+        access_token_secret = os.environ['ACCESS_TOKEN_SECRET']
+    except KeyError as e:
+        raise EnvironmentError(f"Missing environment variable: {e.args[0]}")
 
-    api_v1 = auth_v1(consumer_key, consumer_secret,
-                     access_token, access_token_secret)
-    client_v2 = auth_v2(consumer_key, consumer_secret,
-                        access_token, access_token_secret)
+    # Authenticate with Twitter APIs
+    api_v1 = auth_v1(consumer_key, consumer_secret, access_token, access_token_secret)
+    client_v2 = auth_v2(consumer_key, consumer_secret, access_token, access_token_secret)
 
-    media_id = api_v1.media_upload(media).media_id
+    try:
+        # Upload media and get media ID
+        media_id = api_v1.media_upload(media).media_id
+    except tweepy.TweepError as e:
+        raise Exception(f"Media upload failed: {e}")
 
-    return client_v2.create_tweet(media_ids=[media_id])
+    try:
+        # Post tweet with media
+        response = client_v2.create_tweet(media_ids=[media_id])
+        return response
+    except tweepy.TweepError as e:
+        raise Exception(f"Tweet creation failed: {e}")
 
 
 def main():
-    media = get_random_media()
-    tweet(media)
+    try:
+        media = get_random_media()
+        response = tweet(media)
+        print(f"Tweet successfully posted: {response.data}")
+    except Exception as e:
+        print(f"Error: {e}")
 
 
 if __name__ == '__main__':
