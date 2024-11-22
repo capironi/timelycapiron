@@ -35,8 +35,8 @@ def auth_v2(consumer_key, consumer_secret, access_token, access_token_secret):
     )
 
 
-# Tweet picked image/video
-def tweet(media) -> tweepy.Response:
+# Tweet picked image/video with a caption
+def tweet(media, caption="") -> tweepy.Response:
     try:
         # Get Twitter API credentials from environment variables
         consumer_key = os.environ['CONSUMER_KEY']
@@ -57,8 +57,8 @@ def tweet(media) -> tweepy.Response:
         raise Exception(f"Media upload failed: {e}")
 
     try:
-        # Post tweet with media
-        response = client_v2.create_tweet(media_ids=[media_id])
+        # Post tweet with media and optional caption
+        response = client_v2.create_tweet(media_ids=[media_id], text=caption)
         return response
     except tweepy.TweepError as e:
         raise Exception(f"Tweet creation failed: {e}")
@@ -66,8 +66,9 @@ def tweet(media) -> tweepy.Response:
 
 def main():
     try:
-        media = get_random_media()
-        response = tweet(media)
+        media = get_random_media()  # Get random media
+        caption = "Hourly CAPIRON for everyone!"  # Define your caption
+        response = tweet(media, caption)  # Tweet the media with caption
         print(f"Tweet successfully posted: {response.data}")
     except Exception as e:
         print(f"Error: {e}")
