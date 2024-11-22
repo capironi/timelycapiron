@@ -35,6 +35,19 @@ def auth_v2(consumer_key, consumer_secret, access_token, access_token_secret):
     )
 
 
+# Read captions from a .txt file and pick a random one
+def get_random_caption(file_path='captions.txt'):
+    try:
+        with open(file_path, 'r') as file:
+            captions = file.readlines()
+        # Choose a random caption and strip any extra whitespace
+        return random.choice(captions).strip()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"The file '{file_path}' does not exist.")
+    except Exception as e:
+        raise Exception(f"Error reading captions from file: {e}")
+
+
 # Tweet picked image/video with a caption
 def tweet(media, caption="") -> tweepy.Response:
     try:
@@ -67,7 +80,7 @@ def tweet(media, caption="") -> tweepy.Response:
 def main():
     try:
         media = get_random_media()  # Get random media
-        caption = "Hourly CAPIRON for everyone!"  # Define your caption
+        caption = get_random_caption('captions.txt')  # Get a random caption from the file
         response = tweet(media, caption)  # Tweet the media with caption
         print(f"Tweet successfully posted: {response.data}")
     except Exception as e:
