@@ -1,10 +1,9 @@
-name: Tweet Capiron
+name: Tweet Capiron Every 4 Hours
 
 on:
-  workflow_dispatch:
-  # Uncomment and modify this if you want to schedule it
-  # schedule:
-  #   - cron: '0 * * * *'  # Uncomment to run every hour at 00 minutes
+  workflow_dispatch:  # Allows manual trigger via GitHub Actions
+  schedule:
+    - cron: '0 */4 * * *'  # Run every 4 hours at 00 minutes
 
 jobs:
   build:
